@@ -1,4 +1,4 @@
-const CACHE = 'balcony-water-v2';
+const CACHE = 'balcony-water-v3';
 const ASSETS = ['./', 'index.html', 'style.css', 'fonts.css', 'app.js', 'manifest.webmanifest',
   'fonts/HankenGrotesk.woff2', 'fonts/IBMPlexMono-400.woff2', 'fonts/IBMPlexMono-500.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];

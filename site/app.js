@@ -1,5 +1,5 @@
 'use strict';
-const SPECIES = { Geranium:'drought', Petunia:'thirsty', Surfinia:'thirsty', Tomato:'thirsty', Basil:'thirsty', Strawberry:'thirsty', Mint:'thirsty', Lobelia:'thirsty', Fuchsia:'moderate', Begonia:'moderate', Marigold:'moderate', Verbena:'moderate', 'Mixed flowers':'moderate', Lavender:'drought', Rosemary:'drought', Thyme:'drought', Succulents:'drought', Other:'moderate' };
+const SPECIES = { Geranium:'drought', Petunia:'thirsty', Surfinia:'thirsty', Tomato:'thirsty', Basil:'thirsty', Strawberry:'thirsty', Mint:'thirsty', Lobelia:'thirsty', Calibrachoa:'thirsty', Vines:'moderate', Polygala:'moderate', Mandevilla:'moderate', Fuchsia:'moderate', Begonia:'moderate', Marigold:'moderate', Verbena:'moderate', 'Mixed flowers':'moderate', Lavender:'drought', Rosemary:'drought', Thyme:'drought', Succulents:'drought', Other:'moderate' };
 const THIRST = { thirsty:{l:'thirsty',m:-1}, moderate:{l:'average thirst',m:0}, drought:{l:'drought-tolerant',m:1} };
 const SUN = { full:{l:'Full sun',m:-0.5}, partial:{l:'Part sun',m:0}, shade:{l:'Shade',m:0.5} };
 const SIZE = { 50:{l:'50 cm',m:-0.5}, 80:{l:'80 cm',m:0}, 100:{l:'100 cm',m:0.5} };

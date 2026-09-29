@@ -570,9 +570,23 @@ render();
   const w = state.wx;
   if (!w.at || Date.now() - w.at > 3 * 3600e3 || w.daily?.[0]?.date !== iso()) loadWx();
 }
+let swReg;
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
+  swReg?.update().catch(() => {}); // iOS standalone apps rarely re-check sw.js on their own
   const w = state.wx;
   if (!w.at || Date.now() - w.at > 3 * 3600e3 || w.daily?.[0]?.date !== iso()) loadWx(); else render();
 });
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ('serviceWorker' in navigator) {
+  // A new worker takes over via skipWaiting, but the open page keeps running old code, so reload once.
+  // Skip on first install (nothing stale) and while a sheet is open so a half-filled form isn't lost.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloaded || state.sheet) return;
+    reloaded = true;
+    location.reload();
+  });
+  // updateViaCache:'none' so the ~10 min HTTP cache on GitHub Pages can't hide a new sw.js
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache:'none' }).then(r => { swReg = r; }).catch(() => {}));
+}

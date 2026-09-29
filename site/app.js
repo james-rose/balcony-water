@@ -2,7 +2,16 @@
 const SPECIES = { Geranium:'drought', Petunia:'thirsty', Surfinia:'thirsty', Tomato:'thirsty', Basil:'thirsty', Strawberry:'thirsty', Mint:'thirsty', Lobelia:'thirsty', Calibrachoa:'thirsty', Vines:'moderate', Polygala:'moderate', Mandevilla:'moderate', Fuchsia:'moderate', Begonia:'moderate', Marigold:'moderate', Verbena:'moderate', 'Mixed flowers':'moderate', Lavender:'drought', Rosemary:'drought', Thyme:'drought', Succulents:'drought', Other:'moderate' };
 const THIRST = { thirsty:{l:'thirsty',m:-1}, moderate:{l:'average thirst',m:0}, drought:{l:'drought-tolerant',m:1} };
 const SUN = { full:{l:'Full sun',m:-0.5}, partial:{l:'Part sun',m:0}, shade:{l:'Shade',m:0.5} };
-const SIZE = { 50:{l:'50 cm',m:-0.5}, 80:{l:'80 cm',m:0}, 100:{l:'100 cm',m:0.5} };
+// Each model has its own adjustment, so a new planter type is tuned without touching the others.
+// Saved planters keep `size` as a number; only non-Balconera models add `type`, so a missing type means Balconera.
+const MODELS = {
+  b50:  { l:'Balconera 50 cm',    m:-0.5, size:50 },
+  b80:  { l:'Balconera 80 cm',    m:0,    size:80 },
+  b100: { l:'Balconera 100 cm',   m:0.5,  size:100 },
+  canto:{ l:'Canto Stone Low 40', m:0,    size:40, type:'canto' },
+};
+const modelKey = p => p.type || 'b' + p.size;
+const modelOf = p => MODELS[modelKey(p)] || MODELS.b80;
 const C = { water:'oklch(0.5 0.11 240)', dry:'oklch(0.5 0.11 65)', check:'oklch(0.5 0.11 150)' };
 const T = { water:'oklch(0.94 0.035 240)', dry:'oklch(0.94 0.035 65)', check:'oklch(0.94 0.035 150)' };
 const KEY = 'balconera-app-v1';
@@ -93,14 +102,14 @@ function pickCity(c) {
 function avgHigh() { const d = (state.wx.daily || []).slice(0,3); return d.length ? d.reduce((a,x) => a + x.max, 0) / d.length : 20; }
 function plan(p, avg = avgHigh()) {
   const tk = SPECIES[p.species] || 'moderate', th = THIRST[tk], bd = band(avg);
-  const raw = bd.b + th.m + SUN[p.sun].m + SIZE[p.size].m;
+  const md = modelOf(p), raw = bd.b + th.m + SUN[p.sun].m + md.m;
   const days = bd.b === 0 ? (tk === 'drought' ? 1 : 0) : Math.min(4, Math.max(1, Math.round(raw)));
   const sg = m => m === 0 ? '±0' : (m > 0 ? '+' : '−') + Math.abs(m);
   const rows = [
     { label:`Avg high ${deg(avg)} next 3 days`, val: bd.b === 0 ? 'hot: skip' : `${bd.b} d base` },
     { label:`${p.species} · ${th.l}`, val:sg(th.m) },
     { label:SUN[p.sun].l, val:sg(SUN[p.sun].m) },
-    { label:`${SIZE[p.size].l} planter`, val:sg(SIZE[p.size].m) },
+    { label:md.l, val:sg(md.m) },
   ];
   return { days, rows, total: days === 0 ? 'none' : days === 1 ? '1 day' : `${days} days` };
 }
@@ -156,7 +165,7 @@ function clearMin(id) {
 const openMin = id => setState({ sheet:{ type:'min', id } });
 function openForm(editId) {
   const p = editId && state.planters.find(x => x.id === editId);
-  setState({ sheet:{ type:'form' }, editId: editId || null, form: p ? { name:p.name, location:p.location, species:p.species, sun:p.sun, size:p.size } : emptyForm() });
+  setState({ sheet:{ type:'form' }, editId: editId || null, form: p ? { name:p.name, location:p.location, species:p.species, sun:p.sun, size:p.size, type:p.type } : emptyForm() });
 }
 function saveForm() {
   const f = state.form; if (!f.name.trim()) return;
@@ -278,7 +287,7 @@ function renderToday(m) {
 
 function renderDetail(v) {
   const p = v.p;
-  const chips = [p.species, THIRST[SPECIES[p.species] || 'moderate'].l, SUN[p.sun].l, SIZE[p.size].l, p.location].filter(Boolean);
+  const chips = [p.species, THIRST[SPECIES[p.species] || 'moderate'].l, SUN[p.sun].l, modelOf(p).l, p.location].filter(Boolean);
   const canMin = v.status === 'check', canClear = !!p.minAt;
   const waterLabel = v.status === 'dry' ? 'Refilled early anyway' : 'Refilled to max';
   const waterBg = v.status === 'water' ? C.water : 'transparent', waterFg = v.status === 'water' ? '#FDFCF8' : C.water;
@@ -381,7 +390,7 @@ function renderSettings() {
       ${s.planters.length ? s.planters.map(p => `<div style="display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-radius:16px;background:#FDFCF8;border:1px solid #E5E1D6;">
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
           <div style="font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.name)}</div>
-          <div style="font-size:13px;color:#5C635D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.species)} · ${esc(SUN[p.sun].l)} · ${esc(SIZE[p.size].l)}${p.location ? ' · ' + esc(p.location) : ''}</div>
+          <div style="font-size:13px;color:#5C635D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.species)} · ${esc(SUN[p.sun].l)} · ${esc(modelOf(p).l)}${p.location ? ' · ' + esc(p.location) : ''}</div>
         </div>
         <button data-act="edit" data-id="${esc(p.id)}" style="flex-shrink:0;height:40px;padding:0 14px;border-radius:20px;border:1px solid #D9D5CA;background:#F5F3EC;font-size:14px;font-weight:600;color:#1E2520;cursor:pointer;">Edit</button>
         <button data-act="delete" data-id="${esc(p.id)}" style="flex-shrink:0;height:40px;padding:0 10px;border:none;background:transparent;font-size:14px;font-weight:600;color:oklch(0.5 0.13 25);cursor:pointer;">Remove</button>
@@ -435,7 +444,7 @@ function renderSheet(t) {
         </button>`; }).join('')}
     </div>`;
   } else if (s.sheet?.type === 'form') {
-    const opt = (k, key, label) => { const o = selStyle(f[key] === k); return `<button data-act="${key === 'sun' ? 'sun' : 'size'}" data-v="${k}" style="height:44px;border-radius:12px;border:1.5px solid ${o.bd};background:${o.bg};color:${o.fg};font-size:14px;font-weight:600;cursor:pointer;">${label}</button>`; };
+    const opt = (k, key, label) => { const o = selStyle(f[key] === k); return `<button data-act="sun" data-v="${k}" style="height:44px;border-radius:12px;border:1.5px solid ${o.bd};background:${o.bg};color:${o.fg};font-size:14px;font-weight:600;cursor:pointer;">${label}</button>`; };
     body = `<div style="font-size:20px;font-weight:700;">${s.editId ? 'Edit planter' : 'New planter'}</div>
     <div style="display:flex;flex-direction:column;gap:6px;">
       <div style="font-size:13px;font-weight:600;color:#5C635D;">Name</div>
@@ -456,8 +465,8 @@ function renderSheet(t) {
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;">${Object.keys(SUN).map(k => opt(k, 'sun', SUN[k].l)).join('')}</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-size:13px;font-weight:600;color:#5C635D;">Planter length</div>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;">${[50,80,100].map(k => opt(k, 'size', SIZE[k].l)).join('')}</div>
+      <div style="font-size:13px;font-weight:600;color:#5C635D;">Planter</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;">${Object.keys(MODELS).map(k => { const o = selStyle(modelKey(f) === k); return `<button data-act="model" data-v="${k}" style="min-height:44px;padding:0 8px;border-radius:12px;border:1.5px solid ${o.bd};background:${o.bg};color:${o.fg};font-size:14px;font-weight:600;cursor:pointer;">${MODELS[k].l}</button>`; }).join('')}</div>
     </div>
     <div id="fPreview" style="font-size:13px;color:#5C635D;">${formPreview()}</div>
     <button id="fSave" data-act="save" style="height:52px;border-radius:26px;border:none;background:${saveBg()};color:#FDFCF8;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:8px;">${s.editId ? 'Save changes' : 'Add planter'}</button>`;
@@ -533,7 +542,8 @@ document.addEventListener('click', e => {
     case 'closesheet': return setState({ sheet:null });
     case 'setmin': return markMin(id, +n);
     case 'sun': return setState({ form:{ ...state.form, sun:v } });
-    case 'size': return setState({ form:{ ...state.form, size:+v } });
+    // type is undefined for Balconera; saveForm's spread then clears any old type on edit.
+    case 'model': return setState({ form:{ ...state.form, size:MODELS[v].size, type:MODELS[v].type } });
     case 'save': return saveForm();
     case 'undo': return set({ planters: state.toast.prev, toast:null });
   }

@@ -26,7 +26,8 @@ Each planter has a reservoir with a gauge. When the gauge first reads **min**, t
    |---|---|
    | Plant: thirsty / average / drought-tolerant | −1 / 0 / +1 |
    | Sun: full / part / shade | −0.5 / 0 / +0.5 |
-   | Planter length: 50 / 80 / 100 cm | −0.5 / 0 / +0.5 |
+   | Planter: Balconera 50 / 80 / 100 cm | −0.5 / 0 / +0.5 |
+   | Planter: Canto Stone Low 40 | 0 (starting value, tune from observation) |
 
 3. **Result** = round(base + adjustments), clamped to 1–4 days. In a hot spell (base 0) there is no dry phase (0 days), except drought-tolerant plants, which still get 1 day.
 

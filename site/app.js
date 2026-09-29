@@ -376,6 +376,20 @@ function renderSettings() {
   return `<div style="padding:8px 20px 28px;display:flex;flex-direction:column;gap:22px;">
   <div style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">Settings</div>
   <div style="display:flex;flex-direction:column;gap:8px;">
+    <div style="font-size:13px;font-weight:700;color:#5C635D;padding:0 2px;">Planters</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${s.planters.length ? s.planters.map(p => `<div style="display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;border-radius:16px;background:#FDFCF8;border:1px solid #E5E1D6;">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+          <div style="font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.name)}</div>
+          <div style="font-size:13px;color:#5C635D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.species)} · ${esc(SUN[p.sun].l)} · ${esc(SIZE[p.size].l)}${p.location ? ' · ' + esc(p.location) : ''}</div>
+        </div>
+        <button data-act="edit" data-id="${esc(p.id)}" style="flex-shrink:0;height:40px;padding:0 14px;border-radius:20px;border:1px solid #D9D5CA;background:#F5F3EC;font-size:14px;font-weight:600;color:#1E2520;cursor:pointer;">Edit</button>
+        <button data-act="delete" data-id="${esc(p.id)}" style="flex-shrink:0;height:40px;padding:0 10px;border:none;background:transparent;font-size:14px;font-weight:600;color:oklch(0.5 0.13 25);cursor:pointer;">Remove</button>
+      </div>`).join('') : `<div style="padding:14px;border-radius:16px;background:#FDFCF8;border:1px solid #E5E1D6;font-size:14px;color:#5C635D;">No planters yet. Add one to get started.</div>`}
+      <button data-act="add" style="height:44px;padding:0 16px;border-radius:22px;border:none;background:#1E2520;color:#F5F3EC;font-size:14px;font-weight:600;cursor:pointer;align-self:flex-start;">+ Add planter</button>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
     <div style="font-size:13px;font-weight:700;color:#5C635D;padding:0 2px;">Location for weather</div>
     <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:#FDFCF8;border:1px solid #E5E1D6;">
       <div style="font-size:14px;">Current: <strong>${esc(s.settings.city)}${s.settings.region ? ', ' + esc(s.settings.region) : ''}</strong></div>

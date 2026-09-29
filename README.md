@@ -2,6 +2,7 @@
 
 A small offline-capable web app (PWA) for tracking self-watering balcony planters. No backend, no build step: plain HTML/CSS/JS in [`site/`](site), deployed to GitHub Pages.
 
+- Add, edit and remove planters under Settings → Planters.
 - Planters live in the browser's `localStorage` (key `balconera-app-v1`), on your device only.
 - Weather comes from [Open-Meteo](https://open-meteo.com) (forecast and city search, no API key). Offline, it falls back to a sample forecast.
 - Today shows *Water now*, *Check gauge* and *Dry phase* lists plus a 5-day plan. Each planter has a detail page with history, and every change can be undone from the toast.
